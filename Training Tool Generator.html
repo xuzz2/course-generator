@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Tool Generator Pro</title>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+
+        :root {
+            --bg: #ffffff;
+            --subtle: #fafafa;
+            --line: #eaeaea;
+            --text: #111111;
+            --muted: #667085;
+            --radius: 12px;
+            --brand: #0070f3;
+            --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 20px rgba(16, 24, 40, 0.05);
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background: var(--subtle);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 450px minmax(0, 1fr);
+            height: 100vh;
+            width: 100%;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            height: 100vh;
+            border-right: 1px solid var(--line);
+            background: var(--bg);
+        }
+
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--line);
+            padding: 14px;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            gap: 8px;
+        }
+
+        .title-row h1 {
+            margin: 0;
+            font-size: 16px;
+            letter-spacing: -0.01em;
+        }
+
+        .global-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .full { grid-column: 1 / -1; }
+
+        .sidebar-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .section {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: #fff;
+            padding: 12px;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .section-title {
+            margin: 0;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .module-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .module-card {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px;
+            background: #fff;
+            box-shadow: var(--shadow);
+        }
+
+        .module-card.dragging {
+            opacity: 0.55;
+        }
+
+        .module-card.drop-target {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 1px rgba(0, 112, 243, 0.22);
+        }
+
+        .module-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .module-name-preview {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1b1b1b;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .drag-handle {
+            font-size: 11px;
+            color: #8b8b8b;
+            user-select: none;
+            cursor: grab;
+            margin-right: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .field {
+            min-width: 0;
+            margin-bottom: 8px;
+        }
+
+        .field:last-child { margin-bottom: 0; }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            display: block;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 10px;
+            font: inherit;
+            font-size: 13px;
+            color: var(--text);
+            background: #fff;
+        }
+
+        textarea {
+            min-height: 70px;
+            resize: vertical;
+            line-height: 1.4;
+            overflow: auto;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus,
+        button:focus {
+            outline: 2px solid rgba(0, 112, 243, 0.2);
+            outline-offset: 1px;
+            border-color: #dbeafe;
+        }
+
+        .check-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .check-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            padding: 0;
+            margin: 0;
+        }
+
+        .img-preview {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            height: 92px;
+            background: #f7f7f7 center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8b8b8b;
+            font-size: 11px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .actions {
+            border-top: 1px solid var(--line);
+            background: #fff;
+            padding: 10px 12px 12px;
+            display: flex;
+            gap: 8px;
+            position: sticky;
+            bottom: 0;
+            z-index: 20;
+        }
+
+        .btn {
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 10px;
+            padding: 9px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #222;
+            transition: background 0.16s ease, transform 0.16s ease;
+        }
+
+        .btn:hover {
+            background: #f8f8f8;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: #111;
+            color: #fff;
+            border-color: #111;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.92;
+            background: #111;
+        }
+
+        .preview {
+            min-width: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 18px;
+            background: #f5f5f5;
+        }
+
+        .preview-shell {
+            width: min(1280px, 100%);
+            border: 1px solid #dddddd;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15);
+            background: #fff;
+        }
+
+        .preview-shell.r-16-9 { aspect-ratio: 16 / 9; }
+        .preview-shell.r-16-10 { aspect-ratio: 16 / 10; }
+
+        #frame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .preview-note {
+            font-size: 12px;
+            color: #6a6a6a;
+        }
+
+        @media (max-width: 1100px) {
+            .app {
+                grid-template-columns: 390px minmax(0, 1fr);
+            }
+
+            .global-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 920px) {
+            body {
+                height: auto;
+                overflow: auto;
+            }
+
+            .app {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .sidebar,
+            .preview {
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sticky-header">
+            <div class="title-row">
+                <h1>Training Tool Generator</h1>
+            </div>
+            <div class="global-grid">
+                <div class="field full">
+                    <label for="courseTitle">Course Title</label>
+                    <input id="courseTitle" type="text" value="Customer Support Training">
+                </div>
+                <div class="field">
+                    <label for="ratio">Aspect Ratio</label>
+                    <select id="ratio">
+                        <option value="16-9">16:9</option>
+                        <option value="16-10">16:10</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="typography">Typography</label>
+                    <select id="typography">
+                        <option value="modern">Modern: Inter</option>
+                        <option value="classic">Classic: Playfair + Source Sans</option>
+                        <option value="technical">Technical: JetBrains Mono</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="theme">Theme</label>
+                    <select id="theme">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="brandColor">Brand Color</label>
+                    <input id="brandColor" type="color" value="#0070f3">
+                </div>
+                <div class="field">
+                    <label for="speechRate">Speech Rate</label>
+                    <input id="speechRate" type="range" min="0.5" max="2" step="0.1" value="1">
+                </div>
+                <div class="field">
+                    <label for="voicePitch">Voice Pitch</label>
+                    <input id="voicePitch" type="range" min="0.5" max="2" step="0.1" value="1">
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-scroll">
+            <section class="section">
+                <div class="section-head">
+                    <h2 class="section-title">Modules</h2>
+                    <button class="btn" id="addModuleBtn" type="button">+ Add Module</button>
+                </div>
+                <div id="moduleList" class="module-list"></div>
+            </section>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" type="button" id="downloadBtn">Download HTML</button>
+            <button class="btn" type="button" id="exportJsonBtn">Export JSON</button>
+            <button class="btn" type="button" id="importJsonBtn">Import Config</button>
+            <input id="importFileInput" type="file" accept="application/json" style="display:none">
+        </div>
+    </aside>
+
+    <main class="preview">
+        <div class="preview-shell r-16-9" id="previewShell">
+            <iframe id="frame" title="Live preview"></iframe>
+        </div>
+        <div class="preview-note">Live Preview</div>
+    </main>
+</div>
+
+<script>
+    const STORAGE_KEY = "training-tool-generator-pro-v1";
+
+    const ICONS = {
+        book: { label: "Book", svg: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>' },
+        play: { label: "Play", svg: '<polygon points="8 5 19 12 8 19 8 5"/>' },
+        help: { label: "Help", svg: '<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4"/><line x1="12" y1="17" x2="12" y2="17"/>' },
+        check: { label: "Check", svg: '<polyline points="20 6 9 17 4 12"/>' },
+        settings: { label: "Settings", svg: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6 1.65 1.65 0 0 0-.33 1V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1-.6 1.65 1.65 0 0 0-1.82.33l-.06.06A2 2 0 1 1 3.29 16.4l.06-.06A1.65 1.65 0 0 0 4 15a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 0-1-.33H2.3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4 9a1.65 1.65 0 0 0 .6-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 3.3l.06.06A1.65 1.65 0 0 0 9 4c.38 0 .74-.13 1-.37A1.65 1.65 0 0 0 10.6 2H10.7a2 2 0 1 1 4 0h.09A1.65 1.65 0 0 0 15 4c.38 0 .74-.13 1-.37l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c0 .38.13.74.37 1 .24.26.37.62.37 1s-.13.74-.37 1c-.24.26-.37.62-.37 1z"/>' },
+        user: { label: "User", svg: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' },
+        message: { label: "Message", svg: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' },
+        briefcase: { label: "Briefcase", svg: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/>' },
+        star: { label: "Star", svg: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>' },
+        clock: { label: "Clock", svg: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' },
+        lightbulb: { label: "Lightbulb", svg: '<line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>' },
+        trophy: { label: "Trophy", svg: '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 6H5a2 2 0 0 0 0 4h2"/><path d="M17 6h2a2 2 0 0 1 0 4h-2"/>' }
+    };
+
+    const DEFAULT_STATE = {
+        title: "Customer Support Training",
+        ratio: "16-9",
+        typography: "modern",
+        theme: "light",
+        brandColor: "#0070f3",
+        speechRate: 1,
+        voicePitch: 1,
+        modules: [
+            {
+                id: Date.now(),
+                icon: "book",
+                name: "Module 1: Introduction",
+                body: "Welcome to the training. We will cover the basics of communication and customer handling.",
+                script: "Hello and welcome to Module 1. In this section, we focus on core communication principles.",
+                imageUrl: "",
+                showCompleteButton: true,
+                completed: false
+            }
+        ]
+    };
+
+    let state = loadState();
+    let draggingModuleId = null;
+
+    const refs = {
+        courseTitle: document.getElementById("courseTitle"),
+        ratio: document.getElementById("ratio"),
+        typography: document.getElementById("typography"),
+        theme: document.getElementById("theme"),
+        brandColor: document.getElementById("brandColor"),
+        speechRate: document.getElementById("speechRate"),
+        voicePitch: document.getElementById("voicePitch"),
+        moduleList: document.getElementById("moduleList"),
+        previewShell: document.getElementById("previewShell"),
+        frame: document.getElementById("frame"),
+        addModuleBtn: document.getElementById("addModuleBtn"),
+        downloadBtn: document.getElementById("downloadBtn"),
+        exportJsonBtn: document.getElementById("exportJsonBtn"),
+        importJsonBtn: document.getElementById("importJsonBtn"),
+        importFileInput: document.getElementById("importFileInput")
+    };
+
+    function loadState() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return structuredClone(DEFAULT_STATE);
+            return normalizeState(JSON.parse(raw));
+        } catch {
+            return structuredClone(DEFAULT_STATE);
+        }
+    }
+
+    function normalizeState(candidate) {
+        const safe = structuredClone(DEFAULT_STATE);
+        if (!candidate || typeof candidate !== "object") return safe;
+
+        safe.title = String(candidate.title || safe.title);
+        safe.ratio = candidate.ratio === "16-10" ? "16-10" : "16-9";
+        safe.typography = ["modern", "classic", "technical"].includes(candidate.typography) ? candidate.typography : "modern";
+        safe.theme = candidate.theme === "dark" ? "dark" : "light";
+        safe.brandColor = /^#[0-9a-fA-F]{6}$/.test(candidate.brandColor || "") ? candidate.brandColor : safe.brandColor;
+        safe.speechRate = Math.min(2, Math.max(0.5, Number(candidate.speechRate) || 1));
+        safe.voicePitch = Math.min(2, Math.max(0.5, Number(candidate.voicePitch) || 1));
+
+        if (Array.isArray(candidate.modules) && candidate.modules.length > 0) {
+            safe.modules = candidate.modules.map((m, idx) => ({
+                id: Number(m.id) || Date.now() + idx,
+                icon: ICONS[m.icon] ? m.icon : "book",
+                name: String(m.name || `Module ${idx + 1}`),
+                body: String(m.body || ""),
+                script: String(m.script || ""),
+                imageUrl: String(m.imageUrl || ""),
+                showCompleteButton: m.showCompleteButton !== false,
+                completed: Boolean(m.completed)
+            }));
+        }
+        return safe;
+    }
+
+    function saveState() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function escapeHtml(value) {
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function iconOptions(selected) {
+        return Object.entries(ICONS).map(([key, meta]) => {
+            const sel = key === selected ? " selected" : "";
+            return `<option value="${key}"${sel}>${meta.label}</option>`;
+        }).join("");
+    }
+
+    function addModule() {
+        state.modules.push({
+            id: Date.now() + Math.floor(Math.random() * 999),
+            icon: "book",
+            name: `Module ${state.modules.length + 1}`,
+            body: "Add lesson content here.",
+            script: "Add voiceover script here.",
+            imageUrl: "",
+            showCompleteButton: true,
+            completed: false
+        });
+        render();
+    }
+
+    function removeModule(id) {
+        state.modules = state.modules.filter((m) => m.id !== id);
+        if (state.modules.length === 0) {
+            addModule();
+            return;
+        }
+        render();
+    }
+
+    function updateModule(index, key, value) {
+        state.modules[index][key] = value;
+        // Icon changes should immediately refresh the preview iframe.
+        render(key === "icon");
+    }
+
+    function handleImageUpload(event, moduleIndex) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            state.modules[moduleIndex].imageUrl = String(reader.result || "");
+            render();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function bindGlobalInputs() {
+        refs.courseTitle.value = state.title;
+        refs.ratio.value = state.ratio;
+        refs.typography.value = state.typography;
+        refs.theme.value = state.theme;
+        refs.brandColor.value = state.brandColor;
+        refs.speechRate.value = String(state.speechRate);
+        refs.voicePitch.value = String(state.voicePitch);
+
+        [refs.courseTitle, refs.ratio, refs.typography, refs.theme, refs.brandColor, refs.speechRate, refs.voicePitch].forEach((el) => {
+            el.addEventListener("input", onGlobalChange);
+            el.addEventListener("change", onGlobalChange);
+        });
+    }
+
+    function onGlobalChange() {
+        state.title = refs.courseTitle.value;
+        state.ratio = refs.ratio.value;
+        state.typography = refs.typography.value;
+        state.theme = refs.theme.value;
+        state.brandColor = refs.brandColor.value;
+        state.speechRate = Number(refs.speechRate.value);
+        state.voicePitch = Number(refs.voicePitch.value);
+        render();
+    }
+
+    function bindModuleDragDrop() {
+        refs.moduleList.querySelectorAll(".module-card").forEach((card) => {
+            card.addEventListener("dragstart", (event) => {
+                draggingModuleId = Number(card.dataset.id);
+                card.classList.add("dragging");
+                event.dataTransfer.effectAllowed = "move";
+            });
+
+            card.addEventListener("dragend", () => {
+                draggingModuleId = null;
+                card.classList.remove("dragging");
+                refs.moduleList.querySelectorAll(".module-card").forEach((c) => c.classList.remove("drop-target"));
+            });
+
+            card.addEventListener("dragover", (event) => {
+                event.preventDefault();
+                if (Number(card.dataset.id) !== draggingModuleId) {
+                    card.classList.add("drop-target");
+                }
+            });
+
+            card.addEventListener("dragleave", () => {
+                card.classList.remove("drop-target");
+            });
+
+            card.addEventListener("drop", (event) => {
+                event.preventDefault();
+                card.classList.remove("drop-target");
+                const targetId = Number(card.dataset.id);
+                if (!draggingModuleId || targetId === draggingModuleId) return;
+
+                const fromIndex = state.modules.findIndex((m) => m.id === draggingModuleId);
+                const toIndex = state.modules.findIndex((m) => m.id === targetId);
+                if (fromIndex < 0 || toIndex < 0) return;
+
+                const [moved] = state.modules.splice(fromIndex, 1);
+                state.modules.splice(toIndex, 0, moved);
+                render();
+            });
+        });
+    }
+
+    function renderModuleCards() {
+        refs.moduleList.innerHTML = state.modules.map((m, i) => {
+            const previewStyle = m.imageUrl ? `background-image:url('${escapeHtml(m.imageUrl)}'); color:transparent;` : "";
+            const placeholder = m.imageUrl ? "" : "No image";
+
+            return `
+                <article class="module-card" draggable="true" data-id="${m.id}">
+                    <div class="module-card-head">
+                        <div style="display:flex; align-items:center; min-width:0;">
+                            <span class="drag-handle">drag</span>
+                            <div class="module-name-preview">${escapeHtml(m.name || `Module ${i + 1}`)}</div>
+                        </div>
+                        <button class="btn" type="button" data-remove="${m.id}">Remove</button>
+                    </div>
+
+                    <div class="field">
+                        <label>Module Icon</label>
+                        <select data-index="${i}" data-key="icon">${iconOptions(m.icon)}</select>
+                    </div>
+
+                    <div class="field">
+                        <label>Module Name</label>
+                        <input data-index="${i}" data-key="name" type="text" value="${escapeHtml(m.name)}">
+                    </div>
+
+                    <div class="field">
+                        <label>Screen Content</label>
+                        <textarea data-index="${i}" data-key="body">${escapeHtml(m.body)}</textarea>
+                    </div>
+
+                    <div class="field">
+                        <label>Voiceover Script</label>
+                        <textarea data-index="${i}" data-key="script">${escapeHtml(m.script)}</textarea>
+                    </div>
+
+                    <div class="field">
+                        <label>Image URL</label>
+                        <input data-index="${i}" data-key="imageUrl" type="text" value="${escapeHtml(m.imageUrl)}" placeholder="https://... or upload below">
+                    </div>
+
+                    <div class="field">
+                        <label>Upload Image</label>
+                        <input data-upload-index="${i}" type="file" accept="image/*">
+                        <div class="img-preview" style="${previewStyle}">${placeholder}</div>
+                    </div>
+
+                    <div class="field check-row">
+                        <input data-index="${i}" data-key="showCompleteButton" type="checkbox" ${m.showCompleteButton ? "checked" : ""}>
+                        <label style="margin:0; text-transform:none; letter-spacing:0; font-size:12px;">Show "Mark as Complete" button</label>
+                    </div>
+                </article>
+            `;
+        }).join("");
+
+        refs.moduleList.querySelectorAll("[data-remove]").forEach((btn) => {
+            btn.addEventListener("click", () => removeModule(Number(btn.dataset.remove)));
+        });
+
+        refs.moduleList.querySelectorAll("[data-index][data-key]").forEach((el) => {
+            const idx = Number(el.dataset.index);
+            const key = el.dataset.key;
+            const eventType = (el.type === "checkbox" || el.tagName === "SELECT") ? "change" : "input";
+            el.addEventListener(eventType, () => {
+                const value = el.type === "checkbox" ? el.checked : el.value;
+                updateModule(idx, key, value);
+            });
+        });
+
+        refs.moduleList.querySelectorAll("[data-upload-index]").forEach((input) => {
+            const idx = Number(input.dataset.uploadIndex);
+            input.addEventListener("change", (event) => handleImageUpload(event, idx));
+        });
+
+        bindModuleDragDrop();
+    }
+
+    function typographyVars(preset) {
+        if (preset === "classic") {
+            return {
+                heading: "'Playfair Display', Georgia, serif",
+                body: "'Source Sans 3', Inter, sans-serif"
+            };
+        }
+        if (preset === "technical") {
+            return {
+                heading: "'JetBrains Mono', Consolas, monospace",
+                body: "'JetBrains Mono', Consolas, monospace"
+            };
+        }
+        return {
+            heading: "Inter, 'Segoe UI', sans-serif",
+            body: "Inter, 'Segoe UI', sans-serif"
+        };
+    }
+
+    function buildGeneratedHTML() {
+        const isDark = state.theme === "dark";
+        const ratio = state.ratio === "16-10" ? "16 / 10" : "16 / 9";
+        const ratioClass = state.ratio === "16-10" ? "r-16-10" : "r-16-9";
+        const type = typographyVars(state.typography);
+
+        const safeModules = state.modules.map((m) => ({
+            icon: ICONS[m.icon] ? m.icon : "book",
+            name: m.name,
+            body: m.body,
+            script: m.script,
+            imageUrl: m.imageUrl,
+            showCompleteButton: Boolean(m.showCompleteButton),
+            completed: Boolean(m.completed)
+        }));
+
+        const iconMapForExport = Object.fromEntries(Object.entries(ICONS).map(([k, v]) => [k, v.svg]));
+
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeHtml(state.title)}</title>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        :root {
+            --brand: ${escapeHtml(state.brandColor)};
+            --bg: ${isDark ? "#0f1115" : "#f5f7fb"};
+            --surface: ${isDark ? "#171a21" : "#ffffff"};
+            --surface-soft: ${isDark ? "#141820" : "#fafafa"};
+            --text: ${isDark ? "#e5e7eb" : "#111827"};
+            --muted: ${isDark ? "#9ca3af" : "#667085"};
+            --line: ${isDark ? "#2a2f3a" : "#eaeaea"};
+            --heading-font: ${type.heading};
+            --body-font: ${type.body};
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 10px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--body-font);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ratio-shell {
+            width: min(100vw - 20px, calc((100vh - 20px) * (16 / 9)));
+            aspect-ratio: ${ratio};
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--surface);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+        }
+
+        .ratio-shell.r-16-10 {
+            width: min(100vw - 20px, calc((100vh - 20px) * (16 / 10)));
+        }
+
+        .course-shell {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar {
+            background: var(--surface-soft);
+            border-right: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .course-title {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .module-nav {
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .module-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            color: var(--muted);
+            transition: background 0.16s ease, color 0.16s ease;
+        }
+
+        .module-item.active {
+            color: var(--brand);
+            background: ${isDark ? "#1c2330" : "#ffffff"};
+            border-left: 3px solid var(--brand);
+            padding-left: 9px;
+        }
+
+        .module-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .module-icon,
+        .icon-inline {
+            width: 16px;
+            height: 16px;
+            color: currentColor;
+            flex: 0 0 auto;
+        }
+
+        .module-label {
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 155px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .checkmark {
+            color: #16a34a;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .wave {
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 11px;
+        }
+
+        .wave span {
+            width: 2px;
+            background: var(--brand);
+            border-radius: 2px;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .wave span:nth-child(1) { height: 4px; animation-delay: 0s; }
+        .wave span:nth-child(2) { height: 8px; animation-delay: 0.12s; }
+        .wave span:nth-child(3) { height: 6px; animation-delay: 0.24s; }
+        .wave span:nth-child(4) { height: 10px; animation-delay: 0.36s; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scaleY(0.5); opacity: 0.55; }
+            50% { transform: scaleY(1); opacity: 1; }
+        }
+
+        .main {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .progress-wrap {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--surface-soft);
+            padding: 9px 10px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .progress-track {
+            height: 8px;
+            border-radius: 999px;
+            background: ${isDark ? "#222834" : "#e8eef8"};
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            background: var(--brand);
+            transition: width 0.25s ease;
+        }
+
+        .module-title {
+            margin: 0;
+            font-family: var(--heading-font);
+            font-size: clamp(20px, 2.3vw, 30px);
+            line-height: 1.2;
+        }
+
+        .stage {
+            display: grid;
+            grid-template-columns: minmax(0, 56%) minmax(0, 44%);
+            gap: 12px;
+            min-height: 0;
+            flex: 1;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px;
+            background: var(--surface);
+        }
+
+        .body {
+            margin: 0;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .media {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            overflow: hidden;
+            background: ${isDark ? "#12161f" : "#f7fafc"};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 220px;
+        }
+
+        .media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .placeholder {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .script-box {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--surface);
+            padding: 10px 12px;
+            line-height: 1.6;
+        }
+
+        .script-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--brand);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .bottom-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .complete-btn {
+            border: 1px solid var(--brand);
+            background: transparent;
+            color: var(--brand);
+            border-radius: 10px;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 10px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 960px) {
+            .course-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+            }
+
+            .module-nav {
+                display: flex;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .module-item {
+                border-bottom: 0;
+                border-right: 1px solid var(--line);
+                min-width: 180px;
+            }
+
+            .stage {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ratio-shell ${ratioClass}">
+        <div class="course-shell">
+            <aside class="sidebar">
+                <div class="course-title">${escapeHtml(state.title)}</div>
+                <div class="module-nav" id="moduleNav"></div>
+            </aside>
+
+            <main class="main">
+                <div class="progress-wrap">
+                    <div class="progress-label">
+                        <span>Course Progress</span>
+                        <span id="progressText">0%</span>
+                    </div>
+                    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+                </div>
+
+                <h1 class="module-title" id="moduleTitle"></h1>
+
+                <div class="stage">
+                    <div class="panel"><p class="body" id="moduleBody"></p></div>
+                    <div class="media" id="moduleMedia"></div>
+                </div>
+
+                <div class="script-box">
+                    <div class="script-label">Voiceover Script</div>
+                    <div id="moduleScript"></div>
+                    <div class="bottom-row" id="completeRow"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const iconMap = ${JSON.stringify(iconMapForExport)};
+        const modules = ${JSON.stringify(safeModules)};
+        const speechRate = ${Number(state.speechRate)};
+        const voicePitch = ${Number(state.voicePitch)};
+
+        let current = 0;
+        const visited = new Set([0]);
+        let isPlaying = false;
+
+        function iconSvg(key, cls) {
+            const svg = iconMap[key] || iconMap.book;
+            return '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + svg + '</svg>';
+        }
+
+        function stopSpeech() {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+            isPlaying = false;
+        }
+
+        function playSpeech(text) {
+            stopSpeech();
+            if (!window.speechSynthesis || !text) {
+                renderNav();
+                return;
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = speechRate;
+            utterance.pitch = voicePitch;
+            utterance.onstart = () => {
+                isPlaying = true;
+                renderNav();
+            };
+            utterance.onend = () => {
+                isPlaying = false;
+                renderNav();
+            };
+            utterance.onerror = () => {
+                isPlaying = false;
+                renderNav();
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function renderProgress() {
+            const percent = Math.round((visited.size / modules.length) * 100);
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = percent + '%';
+        }
+
+        function renderNav() {
+            const nav = document.getElementById('moduleNav');
+            nav.innerHTML = modules.map((m, idx) => {
+                const active = idx === current ? 'active' : '';
+                const check = m.completed ? '<span class="checkmark">done</span>' : '';
+                const wave = idx === current && isPlaying
+                    ? '<span class="wave"><span></span><span></span><span></span><span></span></span>'
+                    : '';
+                return '<div class="module-item ' + active + '" onclick="switchTab(' + idx + ')">'
+                    + '<div class="module-left">'
+                    + iconSvg(m.icon || 'book', 'module-icon')
+                    + '<span class="module-label">' + (m.name || ('Module ' + (idx + 1))) + '</span>'
+                    + '</div>'
+                    + '<span class="status">' + wave + check + '</span>'
+                    + '</div>';
+            }).join('');
+        }
+
+        function markComplete() {
+            modules[current].completed = true;
+            renderNav();
+        }
+
+        function renderModule() {
+            const m = modules[current] || {};
+            document.getElementById('moduleTitle').textContent = m.name || 'Untitled module';
+            document.getElementById('moduleBody').textContent = m.body || 'No content provided.';
+            document.getElementById('moduleScript').textContent = m.script || 'No script provided.';
+
+            const media = document.getElementById('moduleMedia');
+            if (m.imageUrl) {
+                media.innerHTML = '<img src="' + m.imageUrl + '" alt="Module image">';
+            } else {
+                media.innerHTML = '<div class="placeholder">No image for this module</div>';
+            }
+
+            const completeRow = document.getElementById('completeRow');
+            if (m.showCompleteButton) {
+                completeRow.innerHTML = '<button class="complete-btn" type="button" onclick="markComplete()">Mark as Complete</button>';
+            } else {
+                completeRow.innerHTML = '';
+            }
+
+            renderProgress();
+            renderNav();
+            playSpeech(m.script || '');
+        }
+
+        function switchTab(index) {
+            current = index;
+            visited.add(index);
+            renderModule();
+        }
+
+        window.addEventListener('beforeunload', stopSpeech);
+        switchTab(0);
+    <\/script>
+</body>
+</html>`;
+    }
+
+    function render(updatePreview = true) {
+        refs.previewShell.className = `preview-shell r-${state.ratio}`;
+        renderModuleCards();
+        saveState();
+        if (updatePreview) {
+            refs.frame.srcdoc = buildGeneratedHTML();
+        }
+    }
+
+    function downloadHTML() {
+        const blob = new Blob([buildGeneratedHTML()], { type: "text/html" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${(state.title || "training-course").trim().replace(/\s+/g, "-").toLowerCase()}.html`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    function exportJSON() {
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${(state.title || "training-course").trim().replace(/\s+/g, "-").toLowerCase()}-config.json`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    function importJSONFile(file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                state = normalizeState(JSON.parse(String(reader.result || "{}")));
+                syncInputs();
+                render();
+            } catch {
+                alert("Invalid JSON file.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function syncInputs() {
+        refs.courseTitle.value = state.title;
+        refs.ratio.value = state.ratio;
+        refs.typography.value = state.typography;
+        refs.theme.value = state.theme;
+        refs.brandColor.value = state.brandColor;
+        refs.speechRate.value = String(state.speechRate);
+        refs.voicePitch.value = String(state.voicePitch);
+    }
+
+    refs.addModuleBtn.addEventListener("click", addModule);
+    refs.downloadBtn.addEventListener("click", downloadHTML);
+    refs.exportJsonBtn.addEventListener("click", exportJSON);
+    refs.importJsonBtn.addEventListener("click", () => refs.importFileInput.click());
+    refs.importFileInput.addEventListener("change", (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (file) importJSONFile(file);
+        refs.importFileInput.value = "";
+    });
+
+    bindGlobalInputs();
+    syncInputs();
+    render();
+</script>
+</body>
+</html>
